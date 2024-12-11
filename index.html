@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To Do Liste</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #89f7fe, #66a6ff) no-repeat fixed center;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .todo-container {
+      max-width: 500px;
+      margin: 30px auto;
+      background: #ffffffcc;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .todo-container input {
+      width: calc(100% - 60px);
+      padding: 10px;
+      margin-right: 10px;
+      border: 2px solid #66a6ff;
+      border-radius: 8px;
+      outline: none;
+      font-size: 16px;
+    }
+    .todo-container button {
+      padding: 10px 15px;
+      border: none;
+      background-color: #66a6ff;
+      color: white;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .todo-container button:hover {
+      background-color: #559be6;
+    }
+    .filters button {
+      margin: 5px;
+      padding: 8px 12px;
+      border: none;
+      background-color: #0056b3;
+      color: white;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .filters button.active {
+      background-color: #003d80;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      margin: 8px 0;
+      background: #f0f8ff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 0.5s;
+    }
+    li.completed {
+      text-decoration: line-through;
+      color: gray;
+      background: #d4edda;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .delete-btn:hover {
+      background: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <h1>To Do Liste</h1>
+  <div class="todo-container">
+    <input type="text" id="todo-input" placeholder="Legg til en oppgave...">
+    <button onclick="addTodo()">Legg til</button>
+    <div class="filters">
+      <button onclick="filterTodos('all')" class="active">Alle</button>
+      <button onclick="filterTodos('completed')">Fullførte</button>
+      <button onclick="filterTodos('uncompleted')">Ikke fullførte</button>
+    </div>
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    let todos;
+
+    try {
+      todos = JSON.parse(localStorage.getItem('todos')) || [];
+    } catch (error) {
+      console.error('Error parsing todos from LocalStorage:', error);
+      todos = [];
+    }
+
+    function saveTodos() {
+      try {
+        localStorage.setItem('todos', JSON.stringify(todos));
+      } catch (error) {
+        console.error('Error saving todos to LocalStorage:', error);
+      }
+    }
+
+    function addTodo() {
+      const input = document.getElementById('todo-input');
+      const text = input.value.trim();
+      if (text) {
+        todos.push({ text, completed: false });
+        input.value = '';
+        saveTodos();
+        renderTodos();
+      }
+    }
+
+    function toggleComplete(index) {
+      if (index >= 0 && index < todos.length) {
+        todos[index].completed = !todos[index].completed;
+        saveTodos();
+        renderTodos();
+      }
+    }
+
+    function deleteTodo(index) {
+      if (index >= 0 && index < todos.length) {
+        todos.splice(index, 1);
+        saveTodos();
+        renderTodos();
+      }
+    }
+
+    function filterTodos(filter) {
+      document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.filters button[onclick="filterTodos('${filter}')"]`).classList.add('active');
+      renderTodos(filter);
+    }
+
+    function renderTodos(filter = 'all') {
+      const list = document.getElementById('todo-list');
+      list.innerHTML = '';
+      todos
+        .filter(todo =>
+          filter === 'all' ? true : filter === 'completed' ? todo.completed : !todo.completed
+        )
+        .forEach((todo, index) => {
+          const li = document.createElement('li');
+          li.className = todo.completed ? 'completed' : '';
+          li.innerHTML = `
+            <span onclick="toggleComplete(${index})">${todo.text}</span>
+            <button class="delete-btn" onclick="deleteTodo(${index})">Slett</button>
+          `;
+          list.appendChild(li);
+        });
+    }
+
+    renderTodos();
+  </script>
+</body>
+</html>
